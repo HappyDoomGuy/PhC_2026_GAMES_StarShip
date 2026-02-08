@@ -1,0 +1,8 @@
+{
+  "name": "supradin-game",
+  "version": "1.0.0",
+  "scripts": {
+    "serve": "npx serve . -l 3000",
+    "start": "npx serve . -l 3000"
+  }
+}

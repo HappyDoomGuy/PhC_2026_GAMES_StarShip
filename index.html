@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Супрадин — Собери витамины!</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+  <div id="splash-screen">
+    <div class="splash-logo">СУПРАДИН</div>
+    <p class="splash-tap">Нажмите чтобы начать</p>
+  </div>
+  <div id="main-menu" style="display: none">
+    <h1>СУПРАДИН</h1>
+    <p>Собери все витамины!<br>Тапай, куда двигать корабль.<br>Избегай мусора (✗). Лови бонусы: 🧲⏱🛡</p>
+    <p id="record-display" class="record">Рекорд: 0</p>
+    <button class="btn" id="start-btn">Играть</button>
+  </div>
+  <div id="game-container">
+    <div id="left-panel"></div>
+    <div id="right-panel"></div>
+    <div id="game-area">
+      <canvas id="canvas"></canvas>
+      <div id="floating-points"></div>
+      <div id="ui-overlay">
+        <span id="level-display">Уровень 1</span>
+        <div id="active-bonuses" class="active-bonuses" style="display: none"></div>
+        <span id="score-display">0/0</span>
+        <span id="lives-display" class="lives">♥♥♥</span>
+      </div>
+      <div id="combo-display" class="combo-display" style="display: none"></div>
+      <div id="milestone-messages"></div>
+      <div id="level-complete">
+        <h2>Супрадин собран!</h2>
+        <div id="level-stars" class="stars">★☆☆</div>
+        <p class="stars-hint">★ пройден · ★★ без потерь жизни · ★★★ одна серия комбо</p>
+        <p>Следующий уровень — быстрее!</p>
+        <button class="btn" id="next-level-btn">Следующий уровень</button>
+      </div>
+      <div id="game-over">
+        <h2>Игра окончена</h2>
+        <p>Достигнут уровень 1.</p>
+        <button class="btn" id="restart-btn">Заново</button>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
