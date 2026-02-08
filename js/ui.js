@@ -179,16 +179,23 @@ export function hideLevelComplete() {
 }
 
 export function showGameOver(level, score, record) {
-  if (!gameOverScreen) return;
-  gameOverScreen.style.display = 'flex';
-  const h2 = gameOverScreen.querySelector('h2');
-  const p = gameOverScreen.querySelector('p');
+  const el = document.getElementById('game-over');
+  if (!el) return;
+  const h2 = el.querySelector('h2');
+  const p = el.querySelector('.game-over-stats');
   if (h2) h2.textContent = 'Игра окончена';
   if (p) p.textContent = `Уровень ${level}. Очки: ${score}${record > 0 ? `. Рекорд: ${record}` : ''}`;
+  el.classList.add('game-over-visible');
+  el.style.display = 'flex';
+  el.style.visibility = 'visible';
 }
 
 export function hideGameOver() {
-  if (gameOverScreen) gameOverScreen.style.display = 'none';
+  const el = document.getElementById('game-over');
+  if (el) {
+    el.classList.remove('game-over-visible');
+    el.style.display = 'none';
+  }
 }
 
 export function getStartButton() {

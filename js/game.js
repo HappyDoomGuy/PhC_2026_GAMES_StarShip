@@ -24,7 +24,7 @@ import {
   BONUS_MAGNET_PULL,
   BONUS_SLOW_FACTOR
 } from './config.js';
-import { initRenderer, resize, clear, drawFallingItems, drawShip, drawShieldBubble, spawnSparks, updateAndDrawSparks, getDimensions } from './renderer.js';
+import { initRenderer, resize, clear, drawFallingItems, drawShip, drawShieldBubble, spawnSparks, updateAndDrawSparks, spawnExplosion, updateAndDrawExplosion, isExplosionActive, getDimensions } from './renderer.js';
 import {
   initUI,
   buildPanels,
@@ -57,6 +57,8 @@ let gameLoop;
 let lastSpawn = 0;
 let isPlaying = false;
 let noMisses = true;
+let gameOverPending = false;
+let gameOverTimeoutId = null;
 let bonuses = { magnet: 0, slowdown: 0, shield: 0 };
 
 export function init() {
@@ -210,6 +212,9 @@ function loop(timestamp) {
   if (!isPlaying) return;
 
   const { gameWidth, gameHeight } = getDimensions();
+  const now = timestamp;
+
+  if (!gameOverPending) {
   const speed = BASE_SPEED + (level - 1) * 0.4;
   const spawnRate = Math.max(400, SPAWN_INTERVAL - (level - 1) * 80);
 
@@ -228,7 +233,6 @@ function loop(timestamp) {
     ry: SHIP_HEIGHT / 2
   };
 
-  const now = timestamp;
   const trashSpeedBonus = (level - 1) * TRASH_SPEED_BONUS;
   const slowActive = bonuses.slowdown > now;
   const magnetActive = bonuses.magnet > now;
@@ -282,7 +286,18 @@ function loop(timestamp) {
           setLives(lives);
           if (lives <= 0) {
             setRecord(score);
-            gameOver();
+            const shipCx = ship.x + SHIP_WIDTH / 2;
+            const shipCy = gameHeight - SHIP_HEIGHT / 2 - 12;
+            spawnExplosion(shipCx, shipCy);
+            gameOverPending = true;
+            if (gameOverTimeoutId) clearTimeout(gameOverTimeoutId);
+            gameOverTimeoutId = setTimeout(() => {
+              gameOverTimeoutId = null;
+              if (gameOverPending) {
+                gameOverPending = false;
+                gameOver();
+              }
+            }, 1500);
           }
         }
         return false;
@@ -312,11 +327,17 @@ function loop(timestamp) {
   });
 
   setActiveBonuses(bonuses);
+  }
   clear();
   drawFallingItems(fallingItems, collected);
-  drawShip(ship.x, ship.targetX - ship.x);
-  if (bonuses.shield > now) drawShieldBubble(ship.x);
-  updateAndDrawSparks();
+  if (gameOverPending) {
+    updateAndDrawExplosion();
+    updateAndDrawSparks();
+  } else {
+    drawShip(ship.x, ship.targetX - ship.x);
+    if (bonuses.shield > now) drawShieldBubble(ship.x, bonuses.shield - now);
+    updateAndDrawSparks();
+  }
   gameLoop = requestAnimationFrame(loop);
 }
 

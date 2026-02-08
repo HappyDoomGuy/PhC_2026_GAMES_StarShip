@@ -251,20 +251,29 @@ export function drawShip(shipX, velocity = 0) {
   }
 }
 
-export function drawShieldBubble(shipX) {
+export function drawShieldBubble(shipX, remainingMs = 0) {
   const cx = shipX + SHIP_WIDTH / 2;
   const cy = gameHeight - SHIP_HEIGHT / 2 - 12;
   const r = Math.max(SHIP_WIDTH, SHIP_HEIGHT) / 2 + 18;
 
+  const blink = remainingMs > 0 && remainingMs < 5000;
+  const pulse = blink ? 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(Date.now() / 120)) : 1;
+
   ctx.save();
   const grad = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, 0, cx, cy, r);
-  grad.addColorStop(0, 'rgba(100, 200, 255, 0.35)');
-  grad.addColorStop(0.5, 'rgba(100, 200, 255, 0.15)');
-  grad.addColorStop(1, 'rgba(100, 200, 255, 0)');
+  grad.addColorStop(0, `rgba(80, 220, 140, ${0.4 * pulse})`);
+  grad.addColorStop(0.4, `rgba(60, 200, 120, ${0.25 * pulse})`);
+  grad.addColorStop(0.8, `rgba(40, 180, 100, ${0.1 * pulse})`);
+  grad.addColorStop(1, 'rgba(30, 160, 90, 0)');
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.fill();
+  ctx.strokeStyle = `rgba(80, 220, 140, ${0.5 * pulse})`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -302,4 +311,65 @@ export function updateAndDrawSparks() {
     ctx.fill();
     return true;
   });
+}
+
+let explosionParticles = [];
+let explosionStartTime = 0;
+let explosionCenter = { x: 0, y: 0 };
+
+export function spawnExplosion(x, y) {
+  explosionParticles = [];
+  explosionCenter = { x, y };
+  explosionStartTime = Date.now();
+  const count = 35 + Math.floor(Math.random() * 25);
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 4 + Math.random() * 14;
+    const hue = Math.random() < 0.5 ? '255, 100, 50' : (Math.random() < 0.5 ? '255, 200, 50' : '255, 255, 150');
+    explosionParticles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 4,
+      life: 1,
+      size: 2 + Math.random() * 5,
+      hue
+    });
+  }
+}
+
+export function updateAndDrawExplosion() {
+  if (explosionParticles.length === 0) return false;
+  const elapsed = Date.now() - explosionStartTime;
+  if (elapsed > 1400) return false;
+
+  explosionParticles = explosionParticles.filter(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.2;
+    p.vx *= 0.98;
+    p.life -= 0.022;
+    if (p.life <= 0) return false;
+    const alpha = p.life * (1 - elapsed / 1400 * 0.5);
+    ctx.fillStyle = `rgba(${p.hue}, ${alpha})`;
+    ctx.shadowColor = `rgba(${p.hue}, 0.8)`;
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    return true;
+  });
+
+  if (elapsed < 150) {
+    const flash = 1 - elapsed / 150;
+    ctx.fillStyle = `rgba(255, 200, 100, ${flash * 0.5})`;
+    ctx.beginPath();
+    ctx.arc(explosionCenter.x, explosionCenter.y, 70, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  return true;
+}
+
+export function isExplosionActive() {
+  return explosionParticles.length > 0 && (Date.now() - explosionStartTime) < 1400;
 }

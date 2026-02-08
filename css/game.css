@@ -263,7 +263,7 @@
   font-weight: 300;
 }
 
-#start-screen, #level-complete, #game-over {
+#start-screen, #level-complete {
   position: absolute;
   inset: 44px 44px 0 44px;
   display: flex;
@@ -277,7 +277,56 @@
   pointer-events: auto;
 }
 
-#level-complete, #game-over { display: none; }
+#level-complete { display: none; }
+
+.game-over-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  padding: 20px;
+  pointer-events: auto;
+  animation: game-over-fade-in 0.3s ease;
+}
+
+.game-over-overlay.game-over-visible {
+  display: flex;
+}
+
+@keyframes game-over-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.game-over-popup {
+  background: linear-gradient(145deg, rgba(30,30,50,0.98), rgba(20,20,35,0.99));
+  border-radius: 20px;
+  padding: 28px 36px;
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.05);
+  border: 1px solid rgba(233,69,96,0.2);
+  animation: game-over-popup-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes game-over-popup-in {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.game-over-popup h2 {
+  margin-bottom: 12px;
+}
+
+.game-over-stats {
+  margin-bottom: 24px;
+  font-size: 15px;
+}
 
 .lives {
   color: #e94560;
