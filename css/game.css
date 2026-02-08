@@ -78,6 +78,50 @@
   margin-bottom: 24px !important;
 }
 
+.ship-selector {
+  margin-bottom: 20px;
+}
+
+.ship-selector-label {
+  color: #a2a2b8 !important;
+  font-size: 12px !important;
+  margin-bottom: 10px !important;
+}
+
+.ship-options {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
+.ship-option {
+  padding: 8px;
+  background: rgba(60, 60, 90, 0.6);
+  border: 2px solid #5a5a7a;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ship-option img {
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.ship-option:hover {
+  background: rgba(80, 80, 120, 0.6);
+  border-color: #7a7aa0;
+}
+
+.ship-option.selected {
+  background: rgba(233, 69, 96, 0.15);
+  border-color: #e94560;
+  box-shadow: 0 0 12px rgba(233, 69, 96, 0.4);
+}
+
 #game-container {
   position: relative;
   width: 100%;

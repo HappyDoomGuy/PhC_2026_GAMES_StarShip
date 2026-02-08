@@ -3,7 +3,8 @@
  */
 
 import { init, startGame, bindButtons } from './game.js';
-import { getRecord } from './storage.js';
+import { getRecord, getShipType, setShipType as saveShipType } from './storage.js';
+import { setShipType as setRendererShip } from './renderer.js';
 import { showMainMenu } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,6 +13,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const recordEl = document.getElementById('record-display');
   if (recordEl) recordEl.textContent = `Рекорд: ${getRecord()}`;
+
+  const savedShip = getShipType();
+  setRendererShip(savedShip);
+  document.querySelectorAll('.ship-option').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.ship === savedShip);
+  });
+  document.querySelectorAll('.ship-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ship = btn.dataset.ship;
+      if (ship !== 'r' && ship !== 'b') return;
+      setRendererShip(ship);
+      saveShipType(ship);
+      document.querySelectorAll('.ship-option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+  });
 
   const splash = document.getElementById('splash-screen');
   let splashDone = false;

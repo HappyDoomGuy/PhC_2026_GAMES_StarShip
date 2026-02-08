@@ -3,6 +3,28 @@
  */
 
 const RECORD_KEY = 'supradin_record';
+const SHIP_KEY = 'supradin_ship';
+
+export function getShipType() {
+  try {
+    const val = localStorage.getItem(SHIP_KEY);
+    return (val === 'r' || val === 'b') ? val : 'r';
+  } catch {
+    return 'r';
+  }
+}
+
+export function setShipType(type) {
+  try {
+    if (type === 'r' || type === 'b') {
+      localStorage.setItem(SHIP_KEY, type);
+      return true;
+    }
+  } catch {
+    // ignore
+  }
+  return false;
+}
 
 export function getRecord() {
   try {

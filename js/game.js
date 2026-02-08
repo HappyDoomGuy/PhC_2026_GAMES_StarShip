@@ -24,7 +24,7 @@ import {
   BONUS_MAGNET_PULL,
   BONUS_SLOW_FACTOR
 } from './config.js';
-import { initRenderer, resize, clear, drawFallingItems, drawShip, drawShieldBubble, spawnSparks, updateAndDrawSparks, spawnExplosion, updateAndDrawExplosion, isExplosionActive, getDimensions } from './renderer.js';
+import { initRenderer, resize, clear, drawFallingItems, drawShip, drawShieldBubble, spawnSparks, spawnShieldShards, updateAndDrawSparks, spawnExplosion, updateAndDrawExplosion, isExplosionActive, getDimensions } from './renderer.js';
 import {
   initUI,
   buildPanels,
@@ -119,7 +119,6 @@ export function startGame() {
 function nextLevel() {
   hideLevelComplete();
   level++;
-  lives = INITIAL_LIVES;
   fallingItems = [];
   resetCollectibles();
   collected = {};
@@ -193,8 +192,16 @@ function spawnItem() {
     item.name = b.name;
     item.color = b.color;
   } else {
-    const ing = INGREDIENTS[Math.floor(Math.random() * INGREDIENTS.length)];
-    Object.assign(item, ing);
+    const neededWeight = 5;
+    const weights = INGREDIENTS.map(ing => collected[ing.id] ? 1 : neededWeight);
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    let idx = INGREDIENTS.length - 1;
+    for (let i = 0; i < INGREDIENTS.length; i++) {
+      r -= weights[i];
+      if (r < 0) { idx = i; break; }
+    }
+    Object.assign(item, INGREDIENTS[idx]);
   }
 
   fallingItems.push(item);
@@ -279,6 +286,7 @@ function loop(timestamp) {
         const impactY = item.y + item.size / 2;
         spawnSparks(impactX, impactY);
         if (bonuses.shield > now) {
+          spawnShieldShards(impactX, impactY);
           bonuses.shield = 0;
           setActiveBonuses(bonuses);
         } else {
@@ -317,7 +325,9 @@ function loop(timestamp) {
         updateSlot(item.id);
         if (Object.keys(collected).length === INGREDIENTS.length) {
           setRecord(score);
-          levelComplete();
+          const stars = calculateStars();
+          setLevelStars(level, stars);
+          levelComplete(stars);
         }
       }
       updateScoreDisplay();

@@ -17,6 +17,17 @@
   <div id="main-menu" style="display: none">
     <h1>СУПРАДИН</h1>
     <p>Собери все витамины!<br>Тапай, куда двигать корабль.<br>Избегай мусора (✗). Лови бонусы: 🧲⏱🛡</p>
+    <div class="ship-selector">
+      <p class="ship-selector-label">Выбери корабль:</p>
+      <div class="ship-options">
+        <button class="ship-option selected" id="ship-r" data-ship="r" title="Корабль R">
+          <img src="assets/player_r_m.png" alt="Корабль R">
+        </button>
+        <button class="ship-option" id="ship-b" data-ship="b" title="Корабль B">
+          <img src="assets/player_b_m.png" alt="Корабль B">
+        </button>
+      </div>
+    </div>
     <p id="record-display" class="record">Рекорд: 0</p>
     <button class="btn" id="start-btn">Играть</button>
   </div>

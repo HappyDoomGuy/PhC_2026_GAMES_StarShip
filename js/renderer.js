@@ -7,20 +7,33 @@ import { SHIP_WIDTH, SHIP_HEIGHT } from './config.js';
 let canvas, ctx;
 let gameWidth, gameHeight;
 const PLAYER_SPRITES = {
-  l1: null, l2: null, m: null, r1: null, r2: null
+  r: { l1: null, l2: null, m: null, r1: null, r2: null },
+  b: { l1: null, l2: null, m: null, r1: null, r2: null }
 };
-const SPRITE_NAMES = ['player_r_l1', 'player_r_l2', 'player_r_m', 'player_r_r1', 'player_r_r2'];
+let selectedShipType = 'r';
+const SHIP_SUFFIXES = ['r', 'b'];
+const FRAME_KEYS = ['l1', 'l2', 'm', 'r1', 'r2'];
 const TRASH_SPRITES = [null, null, null, null];
 const TRASH_NAMES = ['trash1', 'trash2', 'trash3', 'trash4'];
+
+export function setShipType(type) {
+  if (type === 'r' || type === 'b') selectedShipType = type;
+}
+
+export function getShipType() {
+  return selectedShipType;
+}
 
 export function initRenderer() {
   canvas = document.getElementById('canvas');
   ctx = canvas.getContext('2d');
-  SPRITE_NAMES.forEach((name) => {
-    const key = name.replace('player_r_', '');
-    const img = new Image();
-    img.src = `assets/${name}.png`;
-    img.onload = () => { PLAYER_SPRITES[key] = img; };
+  SHIP_SUFFIXES.forEach(suffix => {
+    FRAME_KEYS.forEach(key => {
+      const name = `player_${suffix}_${key}`;
+      const img = new Image();
+      img.src = `assets/${name}.png`;
+      img.onload = () => { PLAYER_SPRITES[suffix][key] = img; };
+    });
   });
   TRASH_NAMES.forEach((name, i) => {
     const img = new Image();
@@ -36,18 +49,23 @@ function getTrashSprite() {
 }
 
 function getPlayerSprite(velocity) {
+  const sprites = PLAYER_SPRITES[selectedShipType];
   const v = velocity ?? 0;
-  if (Math.abs(v) < 10) return PLAYER_SPRITES.m;
-  if (v > 0) return Math.abs(v) >= 40 ? PLAYER_SPRITES.r2 : PLAYER_SPRITES.r1;
-  return Math.abs(v) >= 40 ? PLAYER_SPRITES.l1 : PLAYER_SPRITES.l2;
+  if (Math.abs(v) < 10) return sprites.m;
+  if (v > 0) return Math.abs(v) >= 40 ? sprites.r2 : sprites.r1;
+  return Math.abs(v) >= 40 ? sprites.l1 : sprites.l2;
 }
 
 let starField = [];
+let bgGradSky = null;
+let bgGradNebula = null;
 
 export function resize(width, height) {
   gameWidth = width;
   gameHeight = height;
   starField = [];
+  bgGradSky = null;
+  bgGradNebula = null;
   if (canvas) {
     canvas.width = width;
     canvas.height = height;
@@ -62,7 +80,7 @@ function initStarField() {
   starField = [];
   const w = gameWidth || 400;
   const h = gameHeight || 600;
-  for (let i = 0; i < 120; i++) {
+  for (let i = 0; i < 70; i++) {
     starField.push({
       x: Math.random() * w,
       y: Math.random() * h,
@@ -75,25 +93,29 @@ function initStarField() {
 }
 
 export function clear() {
-  const grad = ctx.createLinearGradient(0, 0, gameWidth, gameHeight);
-  grad.addColorStop(0, '#0d0d1a');
-  grad.addColorStop(0.3, '#12122a');
-  grad.addColorStop(0.6, '#0a0a20');
-  grad.addColorStop(1, '#181830');
-  ctx.fillStyle = grad;
+  if (!bgGradSky) {
+    bgGradSky = ctx.createLinearGradient(0, 0, gameWidth, gameHeight);
+    bgGradSky.addColorStop(0, '#0d0d1a');
+    bgGradSky.addColorStop(0.3, '#12122a');
+    bgGradSky.addColorStop(0.6, '#0a0a20');
+    bgGradSky.addColorStop(1, '#181830');
+  }
+  ctx.fillStyle = bgGradSky;
   ctx.fillRect(0, 0, gameWidth, gameHeight);
 
-  const nebula = ctx.createRadialGradient(
-    gameWidth * 0.3, gameHeight * 0.2, 0,
-    gameWidth * 0.5, gameHeight * 0.5, gameHeight
-  );
-  nebula.addColorStop(0, 'rgba(60, 40, 120, 0.12)');
-  nebula.addColorStop(0.5, 'rgba(30, 20, 80, 0.06)');
-  nebula.addColorStop(1, 'rgba(0, 0, 0, 0)');
-  ctx.fillStyle = nebula;
+  if (!bgGradNebula) {
+    bgGradNebula = ctx.createRadialGradient(
+      gameWidth * 0.3, gameHeight * 0.2, 0,
+      gameWidth * 0.5, gameHeight * 0.5, gameHeight
+    );
+    bgGradNebula.addColorStop(0, 'rgba(60, 40, 120, 0.12)');
+    bgGradNebula.addColorStop(0.5, 'rgba(30, 20, 80, 0.06)');
+    bgGradNebula.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  }
+  ctx.fillStyle = bgGradNebula;
   ctx.fillRect(0, 0, gameWidth, gameHeight);
 
-  if (starField.length === 0 || starField.length < 120) initStarField();
+  if (starField.length === 0 || starField.length < 70) initStarField();
   const w = gameWidth || 400;
   const h = gameHeight || 600;
   const t = Date.now() / 1000;
@@ -111,6 +133,75 @@ export function clear() {
     ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
     ctx.fill();
   });
+}
+
+function drawVitaminAtom(ctx, cx, cy, r, item, t, needToCollect) {
+  const rot = t * 0.5;
+
+  if (needToCollect) {
+    for (let w = 0; w < 2; w++) {
+      const phase = (t * 2 + w * 0.5) % 1;
+      const ringR = r + 4 + phase * 12;
+      const alpha = (1 - phase) * 0.6 * Math.sin(phase * Math.PI);
+      ctx.beginPath();
+      ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+      ctx.strokeStyle = item.color;
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.save();
+  const c = item.color;
+  const shells = [
+    { radius: r * 0.82, electrons: 1 },
+    { radius: r * 0.95, electrons: 2 }
+  ];
+  for (const s of shells) {
+    ctx.strokeStyle = c;
+    ctx.globalAlpha = 0.5;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, s.radius, 0, Math.PI * 2);
+    ctx.stroke();
+    for (let i = 0; i < s.electrons; i++) {
+      const phase = (i / s.electrons) * Math.PI * 2 + rot * (1 + s.radius / r * 0.3);
+      const ex = cx + s.radius * Math.cos(phase);
+      const ey = cy + s.radius * Math.sin(phase);
+      ctx.fillStyle = c;
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.arc(ex, ey, r * 0.07, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  const coreSize = r * 0.75;
+  const coreGrad = ctx.createRadialGradient(cx - coreSize * 0.4, cy - coreSize * 0.4, 0, cx, cy, coreSize);
+  coreGrad.addColorStop(0, c);
+  coreGrad.addColorStop(0.4, c);
+  coreGrad.addColorStop(0.8, 'rgba(0,0,0,0.2)');
+  coreGrad.addColorStop(1, 'rgba(0,0,0,0.4)');
+  ctx.fillStyle = coreGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, coreSize, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 10px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(item.name, cx, cy);
+  ctx.restore();
 }
 
 export function drawFallingItems(items, collected) {
@@ -145,56 +236,67 @@ export function drawFallingItems(items, collected) {
         ctx.textBaseline = 'middle';
         ctx.fillText('✗', cx, cy);
       }
-    } else {
-      if (needToCollect) {
-        for (let w = 0; w < 4; w++) {
-          const phase = (t * 2 + w * 0.35) % 1;
-          const ringR = r + 2 + phase * 14;
-          const alpha = (1 - phase) * 0.6 * Math.sin(phase * Math.PI);
-          ctx.beginPath();
-          ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
-          ctx.strokeStyle = isBonus ? (item.color || '#00d4ff') : item.color;
-          ctx.globalAlpha = alpha;
-          ctx.lineWidth = 3;
-          ctx.stroke();
-        }
-        ctx.globalAlpha = 1;
-      }
+    } else if (isBonus) {
+      const br = r * 1.1;
+      const pulse = 0.92 + 0.08 * Math.sin(t * 4);
+      const rot = t * 0.5;
 
-      ctx.fillStyle = item.color;
+      ctx.save();
+      for (let i = 0; i < 3; i++) {
+        const phase = (t * 1.5 + i * 0.4) % 1;
+        const ringR = br + 4 + phase * 20;
+        const alpha = (1 - phase) * 0.5 * Math.sin(phase * Math.PI);
+        ctx.strokeStyle = item.color || '#00d4ff';
+        ctx.globalAlpha = alpha;
+        ctx.lineWidth = 4;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.arc(cx, cy, ringR, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.globalAlpha = 1;
+
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
       ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 + rot;
+        const x = cx + br * Math.cos(a);
+        const y = cy + br * Math.sin(a);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
       ctx.fill();
 
-      ctx.strokeStyle = isBonus ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.15)';
-      ctx.lineWidth = isBonus ? 2 : 1;
+      ctx.strokeStyle = item.color || '#00d4ff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * Math.PI * 2 + rot;
+        const x = cx + br * Math.cos(a);
+        const y = cy + br * Math.sin(a);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
       ctx.stroke();
 
-      if (isBonus) {
-        ctx.shadowColor = item.color;
-        ctx.shadowBlur = 12;
-      }
-      const hlAngle = item.rotation;
-      const hlX = cx + r * 0.55 * Math.cos(hlAngle);
-      const hlY = cy + r * 0.55 * Math.sin(hlAngle);
-      const hlGrad = ctx.createRadialGradient(hlX - r * 0.25, hlY - r * 0.08, 0, hlX, hlY, r * 0.5);
-      hlGrad.addColorStop(0, 'rgba(255,255,255,0.9)');
-      hlGrad.addColorStop(0.3, 'rgba(255,255,255,0.4)');
-      hlGrad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = item.color || '#00d4ff';
+      ctx.globalAlpha = 0.95;
       ctx.beginPath();
-      ctx.ellipse(hlX, hlY, r * 0.35, r * 0.12, hlAngle, 0, Math.PI * 2);
-      ctx.fillStyle = hlGrad;
+      ctx.arc(cx, cy, br * 0.7, 0, Math.PI * 2);
       ctx.fill();
-      if (isBonus) {
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
-      }
+      ctx.globalAlpha = 1;
 
-      ctx.fillStyle = isBonus ? '#fff' : '#fff';
-      ctx.font = 'bold 12px sans-serif';
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 18px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(item.name, cx, cy);
+      ctx.restore();
+    } else {
+      drawVitaminAtom(ctx, cx, cy, r, item, t, needToCollect);
     }
   });
 }
@@ -206,17 +308,55 @@ export function drawShip(shipX, velocity = 0) {
   const sy = gameHeight - h - 12;
   const cx = sx + w / 2;
   const cy = sy + h / 2;
-  const r = Math.max(w, h) / 2 + 10;
+  const t = Date.now() / 80;
+
+  const flameY = sy + h - 8;
+  const flameH = 32 + Math.sin(t) * 2;
+  const flameWTop = w * 0.08 + Math.sin(t * 1.3) * 0.8;
+  const flameWBottom = w * 0.04;
+  const wobble = (i) => Math.sin(t + i) * 1.5;
 
   ctx.save();
-  const glowGrad = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r);
-  glowGrad.addColorStop(0, 'rgba(100, 200, 255, 0.35)');
-  glowGrad.addColorStop(0.5, 'rgba(100, 200, 255, 0.15)');
-  glowGrad.addColorStop(1, 'rgba(100, 200, 255, 0)');
-  ctx.fillStyle = glowGrad;
+  const flameGrad = ctx.createLinearGradient(cx, flameY, cx, flameY + flameH);
+  flameGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+  flameGrad.addColorStop(0.08, 'rgba(255, 220, 120, 0.9)');
+  flameGrad.addColorStop(0.25, 'rgba(255, 150, 50, 0.8)');
+  flameGrad.addColorStop(0.5, 'rgba(240, 80, 20, 0.5)');
+  flameGrad.addColorStop(0.8, 'rgba(180, 40, 10, 0.2)');
+  flameGrad.addColorStop(1, 'rgba(120, 20, 5, 0)');
+  ctx.fillStyle = flameGrad;
   ctx.beginPath();
-  ctx.ellipse(cx, cy, r, r, 0, 0, Math.PI * 2);
+  ctx.moveTo(cx - flameWTop + wobble(0), flameY);
+  ctx.lineTo(cx + flameWTop + wobble(1), flameY);
+  ctx.lineTo(cx + flameWBottom + wobble(2), flameY + flameH);
+  ctx.lineTo(cx - flameWBottom + wobble(3), flameY + flameH);
+  ctx.closePath();
   ctx.fill();
+
+  const coreGrad = ctx.createLinearGradient(cx, flameY, cx, flameY + flameH * 0.4);
+  coreGrad.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+  coreGrad.addColorStop(0.3, 'rgba(255, 240, 200, 0.6)');
+  coreGrad.addColorStop(1, 'rgba(255, 200, 100, 0)');
+  ctx.fillStyle = coreGrad;
+  const coreW = flameWTop * 0.4;
+  ctx.beginPath();
+  ctx.moveTo(cx - coreW, flameY);
+  ctx.lineTo(cx + coreW, flameY);
+  ctx.lineTo(cx + coreW * 0.2, flameY + flameH * 0.35);
+  ctx.lineTo(cx - coreW * 0.2, flameY + flameH * 0.35);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.fillStyle = 'rgba(255, 200, 100, 0.15)';
+  ctx.beginPath();
+  ctx.moveTo(cx - flameWTop, flameY);
+  ctx.lineTo(cx + flameWTop, flameY);
+  ctx.lineTo(cx + flameWBottom, flameY + flameH);
+  ctx.lineTo(cx - flameWBottom, flameY + flameH);
+  ctx.closePath();
+  ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
   ctx.restore();
 
   const ovalPath = () => {
@@ -254,10 +394,11 @@ export function drawShip(shipX, velocity = 0) {
 export function drawShieldBubble(shipX, remainingMs = 0) {
   const cx = shipX + SHIP_WIDTH / 2;
   const cy = gameHeight - SHIP_HEIGHT / 2 - 12;
-  const r = Math.max(SHIP_WIDTH, SHIP_HEIGHT) / 2 + 18;
+  const r = Math.max(SHIP_WIDTH, SHIP_HEIGHT) / 2 + 8;
 
   const blink = remainingMs > 0 && remainingMs < 5000;
   const pulse = blink ? 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(Date.now() / 120)) : 1;
+  const t = Date.now() / 1000;
 
   ctx.save();
   const grad = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, 0, cx, cy, r);
@@ -274,6 +415,18 @@ export function drawShieldBubble(shipX, remainingMs = 0) {
   ctx.beginPath();
   ctx.arc(cx, cy, r, 0, Math.PI * 2);
   ctx.stroke();
+
+  for (let i = 0; i < 3; i++) {
+    const phase = (t * 1.2 + i * 0.4) % 1;
+    const startAngle = phase * Math.PI * 2 - Math.PI * 0.2;
+    const sweep = Math.PI * 0.4;
+    ctx.strokeStyle = `rgba(80, 240, 140, ${0.6 * pulse})`;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, startAngle, startAngle + sweep);
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
@@ -295,7 +448,54 @@ export function spawnSparks(x, y) {
   }
 }
 
+let shieldShards = [];
+
+export function spawnShieldShards(x, y) {
+  const count = 16 + Math.floor(Math.random() * 12);
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 3 + Math.random() * 8;
+    shieldShards.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 1,
+      life: 1,
+      len: 6 + Math.random() * 10,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.3
+    });
+  }
+}
+
+function updateAndDrawShieldShards() {
+  shieldShards = shieldShards.filter(s => {
+    s.x += s.vx;
+    s.y += s.vy;
+    s.vy += 0.08;
+    s.rot += s.rotSpeed;
+    s.life -= 0.025;
+    if (s.life <= 0) return false;
+    const alpha = s.life;
+    ctx.save();
+    ctx.translate(s.x, s.y);
+    ctx.rotate(s.rot);
+    ctx.fillStyle = `rgba(80, 220, 140, ${alpha})`;
+    ctx.strokeStyle = `rgba(150, 255, 180, ${alpha * 0.8})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, -s.len / 2);
+    ctx.lineTo(s.len * 0.3, s.len / 2);
+    ctx.lineTo(-s.len * 0.3, s.len / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+    return true;
+  });
+}
+
 export function updateAndDrawSparks() {
+  updateAndDrawShieldShards();
   sparks = sparks.filter(s => {
     s.x += s.vx;
     s.y += s.vy;
@@ -351,12 +551,9 @@ export function updateAndDrawExplosion() {
     if (p.life <= 0) return false;
     const alpha = p.life * (1 - elapsed / 1400 * 0.5);
     ctx.fillStyle = `rgba(${p.hue}, ${alpha})`;
-    ctx.shadowColor = `rgba(${p.hue}, 0.8)`;
-    ctx.shadowBlur = 8;
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
     return true;
   });
 
