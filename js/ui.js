@@ -4,14 +4,13 @@
 
 import { INGREDIENTS, GRAY } from './config.js';
 
-let leftPanel, rightPanel;
+let collectBar;
 let levelDisplay, scoreDisplay, livesDisplay, comboDisplay;
 let mainMenu, levelComplete, gameOverScreen;
 let startBtn, nextLevelBtn;
 
 export function initUI() {
-  leftPanel = document.getElementById('left-panel');
-  rightPanel = document.getElementById('right-panel');
+  collectBar = document.getElementById('collect-bar');
   levelDisplay = document.getElementById('level-display');
   scoreDisplay = document.getElementById('score-display');
   livesDisplay = document.getElementById('lives-display');
@@ -24,11 +23,17 @@ export function initUI() {
 }
 
 export function buildPanels() {
-  leftPanel.innerHTML = '';
-  rightPanel.innerHTML = '';
+  if (!collectBar) return;
+  collectBar.innerHTML = '';
   const half = Math.ceil(INGREDIENTS.length / 2);
-  INGREDIENTS.slice(0, half).forEach(ing => addSlot(leftPanel, ing));
-  INGREDIENTS.slice(half).forEach(ing => addSlot(rightPanel, ing));
+  const row1 = document.createElement('div');
+  row1.className = 'collect-row collect-row-1';
+  const row2 = document.createElement('div');
+  row2.className = 'collect-row collect-row-2';
+  INGREDIENTS.slice(0, half).forEach(ing => addSlot(row1, ing));
+  INGREDIENTS.slice(half).forEach(ing => addSlot(row2, ing));
+  collectBar.appendChild(row1);
+  collectBar.appendChild(row2);
 }
 
 function addSlot(container, ing) {
@@ -43,7 +48,7 @@ function addSlot(container, ing) {
 export function resetCollectibles() {
   document.querySelectorAll('.ingredient-slot').forEach(el => {
     el.classList.remove('collected');
-    el.style.background = '#3d3d5c';
+    el.style.background = '';
     el.style.color = GRAY;
   });
 }
@@ -59,21 +64,13 @@ export function updateSlot(id) {
 }
 
 export function setLevel(level) {
-  levelDisplay.textContent = `Уровень ${level}`;
+  levelDisplay.textContent = `Lv.${level}`;
 }
 
 export function setScore(score, record) {
-  scoreDisplay.innerHTML = `
-    <div class="score-block">
-      <span class="score-value">${score.toLocaleString()}</span>
-      <span class="score-label">очки</span>
-    </div>
-    <span class="score-divider">|</span>
-    <div class="record-block">
-      <span class="record-value">${record.toLocaleString()}</span>
-      <span class="record-label">рекорд</span>
-    </div>
-  `;
+  if (scoreDisplay) scoreDisplay.textContent = score.toLocaleString();
+  const recordEl = document.getElementById('record-display-inline');
+  if (recordEl) recordEl.textContent = (record || 0).toLocaleString();
 }
 
 export function showFloatingPoints(x, y, points) {
@@ -106,15 +103,15 @@ export function setActiveBonuses(bonuses) {
   const parts = [];
   if (bonuses.magnet > now) {
     const s = Math.ceil((bonuses.magnet - now) / 1000);
-    parts.push(`<span class="bonus-tag magnet">🧲 ${s}с</span>`);
+    parts.push(`<span class="bonus-tag magnet"><span class="bonus-icon">🧲</span> ${s}с</span>`);
   }
   if (bonuses.slowdown > now) {
     const s = Math.ceil((bonuses.slowdown - now) / 1000);
-    parts.push(`<span class="bonus-tag slowdown">⏱ ${s}с</span>`);
+    parts.push(`<span class="bonus-tag slowdown"><span class="bonus-icon">⌛</span> ${s}с</span>`);
   }
   if (bonuses.shield > now) {
     const s = Math.ceil((bonuses.shield - now) / 1000);
-    parts.push(`<span class="bonus-tag shield">🛡 ${s}с</span>`);
+    parts.push(`<span class="bonus-tag shield"><span class="bonus-icon">🛡</span> ${s}с</span>`);
   }
   el.innerHTML = parts.join('');
   el.style.display = parts.length ? 'flex' : 'none';
@@ -178,13 +175,19 @@ export function hideLevelComplete() {
   levelComplete.style.display = 'none';
 }
 
-export function showGameOver(level, score, record) {
+export function showGameOver(stats) {
   const el = document.getElementById('game-over');
   if (!el) return;
-  const h2 = el.querySelector('h2');
-  const p = el.querySelector('.game-over-stats');
-  if (h2) h2.textContent = 'Игра окончена';
-  if (p) p.textContent = `Уровень ${level}. Очки: ${score}${record > 0 ? `. Рекорд: ${record}` : ''}`;
+  const set = (id, val) => {
+    const node = document.getElementById(id);
+    if (node) node.textContent = String(val ?? 0);
+  };
+  set('go-level', stats.level);
+  set('go-score', stats.score?.toLocaleString?.() ?? stats.score);
+  set('go-record', stats.record?.toLocaleString?.() ?? stats.record);
+  set('go-combo', stats.maxCombo);
+  set('go-record-combo', stats.recordCombo);
+  set('go-levels-done', stats.levelsCompleted);
   el.classList.add('game-over-visible');
   el.style.display = 'flex';
   el.style.visibility = 'visible';

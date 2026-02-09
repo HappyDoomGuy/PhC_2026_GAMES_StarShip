@@ -3,6 +3,7 @@
  */
 
 const RECORD_KEY = 'supradin_record';
+const RECORD_COMBO_KEY = 'supradin_record_combo';
 const SHIP_KEY = 'supradin_ship';
 
 export function getShipType() {
@@ -40,6 +41,28 @@ export function setRecord(score) {
     const current = getRecord();
     if (score > current) {
       localStorage.setItem(RECORD_KEY, String(score));
+      return true;
+    }
+  } catch {
+    // ignore
+  }
+  return false;
+}
+
+export function getRecordCombo() {
+  try {
+    const val = localStorage.getItem(RECORD_COMBO_KEY);
+    return val ? parseInt(val, 10) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+export function setRecordCombo(combo) {
+  try {
+    const current = getRecordCombo();
+    if (combo > current) {
+      localStorage.setItem(RECORD_COMBO_KEY, String(combo));
       return true;
     }
   } catch {

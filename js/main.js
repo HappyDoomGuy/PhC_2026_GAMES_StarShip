@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindButtons(startGame);
 
   const recordEl = document.getElementById('record-display');
-  if (recordEl) recordEl.textContent = `Рекорд: ${getRecord()}`;
+  if (recordEl) recordEl.textContent = `★ ${getRecord()}`;
 
   const savedShip = getShipType();
   setRendererShip(savedShip);

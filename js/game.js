@@ -9,6 +9,7 @@ import {
   ITEM_SIZE,
   SHIP_WIDTH,
   SHIP_HEIGHT,
+  getShipScale,
   LIVES as INITIAL_LIVES,
   TRASH_SPAWN_CHANCE_BASE,
   TRASH_SPAWN_CHANCE_PER_LEVEL,
@@ -44,7 +45,7 @@ import {
   hideGameOver
 } from './ui.js';
 import { initInput } from './input.js';
-import { getRecord, setRecord, setLevelStars } from './storage.js';
+import { getRecord, setRecord, getRecordCombo, setRecordCombo, setLevelStars } from './storage.js';
 
 let ship = { x: 0, targetX: 0 };
 let fallingItems = [];
@@ -53,6 +54,7 @@ let level = 1;
 let lives = INITIAL_LIVES;
 let score = 0;
 let combo = 0;
+let maxCombo = 0;
 let gameLoop;
 let lastSpawn = 0;
 let isPlaying = false;
@@ -98,12 +100,14 @@ export function startGame() {
   lives = INITIAL_LIVES;
   score = 0;
   combo = 0;
+  maxCombo = 0;
   fallingItems = [];
   resetCollectibles();
   collected = {};
   noMisses = true;
   bonuses = { magnet: 0, slowdown: 0, shield: 0 };
-  ship.x = getDimensions().gameWidth / 2 - SHIP_WIDTH / 2;
+  const sw = SHIP_WIDTH * getShipScale();
+  ship.x = getDimensions().gameWidth / 2 - sw / 2;
   ship.targetX = ship.x;
   isPlaying = true;
   lastSpawn = 0;
@@ -159,7 +163,7 @@ function updateScoreDisplay() {
 
 const BONUS_TYPES = [
   { id: 'magnet', name: '🧲', color: '#00d4ff' },
-  { id: 'slowdown', name: '⏱', color: '#9b59b6' },
+  { id: 'slowdown', name: '⌛', color: '#9b59b6' },
   { id: 'shield', name: '🛡', color: '#2ecc71' }
 ];
 
@@ -220,6 +224,7 @@ function loop(timestamp) {
 
   const { gameWidth, gameHeight } = getDimensions();
   const now = timestamp;
+  const scale = getShipScale();
 
   if (!gameOverPending) {
   const speed = BASE_SPEED + (level - 1) * 0.4;
@@ -231,19 +236,20 @@ function loop(timestamp) {
   }
 
   ship.x += (ship.targetX - ship.x) * 0.15;
-
-  const sy = gameHeight - SHIP_HEIGHT - 12;
+  const sw = SHIP_WIDTH * scale;
+  const sh = SHIP_HEIGHT * scale;
+  const sy = gameHeight - sh - 12;
   const shipOval = {
-    cx: ship.x + SHIP_WIDTH / 2,
-    cy: sy + SHIP_HEIGHT / 2,
-    rx: SHIP_WIDTH / 2,
-    ry: SHIP_HEIGHT / 2
+    cx: ship.x + sw / 2,
+    cy: sy + sh / 2,
+    rx: sw / 2,
+    ry: sh / 2
   };
 
   const trashSpeedBonus = (level - 1) * TRASH_SPEED_BONUS;
   const slowActive = bonuses.slowdown > now;
   const magnetActive = bonuses.magnet > now;
-  const shipCenterX = ship.x + SHIP_WIDTH / 2;
+  const shipCenterX = ship.x + sw / 2;
 
   fallingItems = fallingItems.filter(item => {
     let itemSpeed = item.isTrash ? speed + trashSpeedBonus : speed;
@@ -311,6 +317,7 @@ function loop(timestamp) {
         return false;
       }
       combo++;
+      if (combo > maxCombo) maxCombo = combo;
       const tier = getComboTier(combo);
       const prevTier = getComboTier(combo - 1);
       if (tier.mult > prevTier.mult) showComboMilestone(tier.mult);
@@ -344,8 +351,8 @@ function loop(timestamp) {
     updateAndDrawExplosion();
     updateAndDrawSparks();
   } else {
-    drawShip(ship.x, ship.targetX - ship.x);
-    if (bonuses.shield > now) drawShieldBubble(ship.x, bonuses.shield - now);
+    drawShip(ship.x, ship.targetX - ship.x, scale);
+    if (bonuses.shield > now) drawShieldBubble(ship.x, bonuses.shield - now, scale);
     updateAndDrawSparks();
   }
   gameLoop = requestAnimationFrame(loop);
@@ -360,7 +367,15 @@ function levelComplete(stars) {
 function gameOver() {
   isPlaying = false;
   cancelAnimationFrame(gameLoop);
-  showGameOver(level, score, getRecord());
+  setRecordCombo(maxCombo);
+  showGameOver({
+    level,
+    score,
+    record: getRecord(),
+    maxCombo,
+    recordCombo: getRecordCombo(),
+    levelsCompleted: level - 1
+  });
 }
 
 function setupButton(id, handler) {

@@ -301,9 +301,9 @@ export function drawFallingItems(items, collected) {
   });
 }
 
-export function drawShip(shipX, velocity = 0) {
-  const h = SHIP_HEIGHT;
-  const w = SHIP_WIDTH;
+export function drawShip(shipX, velocity = 0, scale = 1) {
+  const w = SHIP_WIDTH * scale;
+  const h = SHIP_HEIGHT * scale;
   const sx = shipX;
   const sy = gameHeight - h - 12;
   const cx = sx + w / 2;
@@ -372,7 +372,7 @@ export function drawShip(shipX, velocity = 0) {
     ctx.drawImage(img, sx, sy, w, h);
     ctx.restore();
   } else {
-    const g = ctx.createLinearGradient(shipX, 0, shipX + SHIP_WIDTH, 0);
+    const g = ctx.createLinearGradient(shipX, 0, shipX + w, 0);
     g.addColorStop(0, '#e94560');
     g.addColorStop(0.5, '#ff6b6b');
     g.addColorStop(1, '#e94560');
@@ -391,10 +391,12 @@ export function drawShip(shipX, velocity = 0) {
   }
 }
 
-export function drawShieldBubble(shipX, remainingMs = 0) {
-  const cx = shipX + SHIP_WIDTH / 2;
-  const cy = gameHeight - SHIP_HEIGHT / 2 - 12;
-  const r = Math.max(SHIP_WIDTH, SHIP_HEIGHT) / 2 + 8;
+export function drawShieldBubble(shipX, remainingMs = 0, scale = 1) {
+  const w = SHIP_WIDTH * scale;
+  const h = SHIP_HEIGHT * scale;
+  const cx = shipX + w / 2;
+  const cy = gameHeight - h / 2 - 12;
+  const r = Math.max(w, h) / 2 + 8;
 
   const blink = remainingMs > 0 && remainingMs < 5000;
   const pulse = blink ? 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(Date.now() / 120)) : 1;

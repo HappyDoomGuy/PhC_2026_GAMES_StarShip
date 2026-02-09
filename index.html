@@ -16,7 +16,7 @@
   </div>
   <div id="main-menu" style="display: none">
     <h1>СУПРАДИН</h1>
-    <p>Собери все витамины!<br>Тапай, куда двигать корабль.<br>Избегай мусора (✗). Лови бонусы: 🧲⏱🛡</p>
+    <p>Собери все витамины!<br>Тапай, куда двигать корабль.<br>Избегай мусора (✗). Лови бонусы: 🧲⌛🛡</p>
     <div class="ship-selector">
       <p class="ship-selector-label">Выбери корабль:</p>
       <div class="ship-options">
@@ -28,21 +28,25 @@
         </button>
       </div>
     </div>
-    <p id="record-display" class="record">Рекорд: 0</p>
+    <p id="record-display" class="record">★ 0</p>
     <button class="btn" id="start-btn">Играть</button>
   </div>
   <div id="game-container">
-    <div id="left-panel"></div>
-    <div id="right-panel"></div>
     <div id="game-area">
-      <canvas id="canvas"></canvas>
-      <div id="floating-points"></div>
       <div id="ui-overlay">
-        <span id="level-display">Уровень 1</span>
+        <div class="hud-left">
+          <span id="level-display">Lv.1</span>
+          <span class="hud-row"><span class="hud-label">очки</span><span id="score-display" class="hud-score">0</span></span>
+          <span class="hud-row"><span class="hud-label">рекорд</span><span id="record-display-inline" class="hud-record">0</span></span>
+          <span id="lives-display" class="lives">♥♥♥</span>
+        </div>
         <div id="active-bonuses" class="active-bonuses" style="display: none"></div>
-        <span id="score-display">0/0</span>
-        <span id="lives-display" class="lives">♥♥♥</span>
       </div>
+      <div class="canvas-wrap">
+        <canvas id="canvas"></canvas>
+        <div id="floating-points"></div>
+      </div>
+      <div id="collect-bar"></div>
       <div id="combo-display" class="combo-display" style="display: none"></div>
       <div id="milestone-messages"></div>
       <div id="level-complete">
@@ -57,7 +61,14 @@
   <div id="game-over" class="game-over-overlay">
     <div class="game-over-popup">
       <h2>Игра окончена</h2>
-      <p class="game-over-stats">Достигнут уровень 1.</p>
+      <div class="game-over-stats">
+        <div class="stat-row"><span class="stat-label">Уровень</span><span class="stat-value" id="go-level">1</span></div>
+        <div class="stat-row"><span class="stat-label">Очки</span><span class="stat-value" id="go-score">0</span></div>
+        <div class="stat-row"><span class="stat-label">Рекорд очков</span><span class="stat-value stat-record" id="go-record">0</span></div>
+        <div class="stat-row"><span class="stat-label">Серия</span><span class="stat-value" id="go-combo">0</span></div>
+        <div class="stat-row"><span class="stat-label">Рекорд серии</span><span class="stat-value stat-record" id="go-record-combo">0</span></div>
+        <div class="stat-row"><span class="stat-label">Уровней пройдено</span><span class="stat-value" id="go-levels-done">0</span></div>
+      </div>
       <button class="btn" id="restart-btn">Заново</button>
     </div>
   </div>
