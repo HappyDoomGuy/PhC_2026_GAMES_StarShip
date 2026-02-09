@@ -4,6 +4,7 @@
 
 import {
   INGREDIENTS,
+  VITAMIN_FULL_NAMES,
   BASE_SPEED,
   SPAWN_INTERVAL,
   ITEM_SIZE,
@@ -38,6 +39,7 @@ import {
   setActiveBonuses,
   showComboMilestone,
   showFloatingPoints,
+  showFloatingVitaminName,
   hideMainMenu,
   showLevelComplete,
   hideLevelComplete,
@@ -325,7 +327,11 @@ function loop(timestamp) {
       const points = Math.round(basePoints * tier.mult);
       score += points;
       setCombo(combo, tier.mult, tier.tier);
-      showFloatingPoints(item.x + item.size / 2, item.y, points);
+      const fx = item.x + item.size / 2;
+      const fy = item.y;
+      showFloatingPoints(fx, fy, points);
+      const fullName = VITAMIN_FULL_NAMES[item.id];
+      if (fullName) showFloatingVitaminName(fx, fy, fullName);
       const isNew = !collected[item.id];
       if (isNew) {
         collected[item.id] = true;

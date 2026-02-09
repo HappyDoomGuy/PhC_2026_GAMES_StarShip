@@ -242,6 +242,20 @@
   text-shadow: 0 0 12px rgba(243,156,18,0.8), 0 2px 8px rgba(0,0,0,0.8) !important;
 }
 
+.floating-vitamin-name {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: rgba(255,255,255,0.95) !important;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+  max-width: 140px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.floating-vitamin-name.floating-point-visible {
+  transform: translate(-50%, -70px) !important;
+}
+
 #ui-overlay {
   position: absolute;
   top: 0;

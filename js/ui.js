@@ -90,6 +90,20 @@ export function showFloatingPoints(x, y, points) {
   setTimeout(() => el.remove(), 1100);
 }
 
+export function showFloatingVitaminName(x, y, fullName) {
+  const container = document.getElementById('floating-points');
+  if (!container || !fullName) return;
+  const el = document.createElement('div');
+  el.className = 'floating-point floating-vitamin-name';
+  el.textContent = fullName;
+  el.style.left = `${x}px`;
+  el.style.top = `${y - 18}px`;
+  el.style.transform = 'translate(-50%, -50%)';
+  container.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('floating-point-visible'));
+  setTimeout(() => el.remove(), 1100);
+}
+
 export function setLives(lives) {
   if (!livesDisplay) return;
   livesDisplay.innerHTML = '♥'.repeat(lives) + '♡'.repeat(Math.max(0, 3 - lives));
