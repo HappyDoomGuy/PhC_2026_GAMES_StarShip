@@ -88,10 +88,12 @@ export function init() {
   }
 }
 
-function handleTap(clientX) {
+function handleTap(tapX) {
   if (!isPlaying) return;
   const { gameWidth } = getDimensions();
-  ship.targetX = Math.max(0, Math.min(gameWidth - SHIP_WIDTH, clientX - SHIP_WIDTH / 2));
+  const edgeMargin = 15;
+  const x = tapX < edgeMargin ? 0 : tapX > gameWidth - edgeMargin ? gameWidth : tapX;
+  ship.targetX = Math.max(0, Math.min(gameWidth - SHIP_WIDTH, x - SHIP_WIDTH / 2));
 }
 
 export function startGame() {

@@ -56,7 +56,7 @@ export const SHIP_WIDTH = 110;
 export const SHIP_HEIGHT = 76;
 
 export function getShipScale() {
-  return typeof window !== 'undefined' && window.innerWidth < 500 ? 0.72 : 1;
+  return 1;
 }
 
 // Очки (×10 уменьшено)
