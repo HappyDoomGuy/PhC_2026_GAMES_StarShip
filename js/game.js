@@ -69,7 +69,7 @@ export function init() {
   initUI();
   initRenderer();
   buildPanels();
-  initInput(handleTap);
+  initInput(handlePointer, () => ship.targetX);
 
   window.addEventListener('resize', () => {
     const rect = document.getElementById('canvas')?.parentElement?.getBoundingClientRect();
@@ -88,12 +88,21 @@ export function init() {
   }
 }
 
-function handleTap(tapX) {
+function handlePointer(kind, data) {
   if (!isPlaying) return;
   const { gameWidth } = getDimensions();
+  const maxShipX = Math.max(0, gameWidth - SHIP_WIDTH);
+
+  if (kind === 'touch-drag') {
+    const raw = data.anchorTargetX + (data.pointerX - data.anchorPointerX);
+    ship.targetX = Math.max(0, Math.min(maxShipX, raw));
+    return;
+  }
+
+  const tapX = data.x;
   const edgeMargin = 15;
   const x = tapX < edgeMargin ? 0 : tapX > gameWidth - edgeMargin ? gameWidth : tapX;
-  ship.targetX = Math.max(0, Math.min(gameWidth - SHIP_WIDTH, x - SHIP_WIDTH / 2));
+  ship.targetX = Math.max(0, Math.min(maxShipX, x - SHIP_WIDTH / 2));
 }
 
 export function startGame() {

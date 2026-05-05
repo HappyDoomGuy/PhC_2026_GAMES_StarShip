@@ -222,6 +222,146 @@
   overflow: hidden;
 }
 
+/* Нижняя полоса: тач-управление, не перекрывает поле боя */
+.touch-steer-strip {
+  display: none;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0));
+  background: rgba(10, 12, 26, 0.95);
+  border-top: 1px solid rgba(100, 150, 255, 0.22);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/*
+  Полоску показываем если:
+  - узкий экран / окно (телефоны и проверка в узком DevTools);
+  - основной ввод «грубый» (палец);
+  - нет hover у первичного ввода (типично для тач-ОС);
+  - или html.has-touch (maxTouchPoints — подстраховка, когда браузер врёт про pointer).
+  Скрываем только на широком desktop с мышью: см. ниже.
+ */
+@media (max-width: 896px), (pointer: coarse), (hover: none) {
+  .touch-steer-strip {
+    display: flex;
+  }
+}
+
+@media (pointer: fine) and (hover: hover) and (min-width: 897px) {
+  .touch-steer-strip {
+    display: none;
+  }
+}
+
+html.has-touch .touch-steer-strip {
+  display: flex;
+}
+
+.touch-steer-strip__track {
+  position: relative;
+  height: 38px;
+  border-radius: 14px;
+  background: rgba(36, 42, 76, 0.55);
+  border: 1px solid rgba(110, 130, 190, 0.4);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.touch-steer-strip__thumb-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  pointer-events: none;
+}
+
+.touch-steer-strip__thumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #e94560, #a82d48);
+  border: 2px solid rgba(255, 215, 225, 0.55);
+  box-shadow: 0 2px 12px rgba(233, 69, 96, 0.5);
+  transition: box-shadow 0.15s ease;
+}
+
+.touch-steer-strip__arrow {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.08em;
+  color: #ffbf66;
+  text-shadow:
+    0 0 6px rgba(255, 165, 70, 0.95),
+    0 0 12px rgba(255, 90, 20, 0.75),
+    0 1px 2px rgba(0, 0, 0, 0.85);
+  animation: touch-steer-arrow-lamp 0.85s ease-in-out infinite;
+}
+
+.touch-steer-strip__arrow--left {
+  animation-delay: 0s;
+  --touch-steer-nudge: -1px;
+}
+
+.touch-steer-strip__arrow--right {
+  animation-delay: 0.42s;
+  --touch-steer-nudge: 1px;
+}
+
+@keyframes touch-steer-arrow-lamp {
+  0% {
+    opacity: 0.35;
+    color: #ff9d45;
+    text-shadow:
+      0 0 4px rgba(255, 120, 30, 0.65),
+      0 0 8px rgba(255, 70, 20, 0.45),
+      0 1px 1px rgba(0, 0, 0, 0.8);
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 1;
+    color: #ffe08a;
+    text-shadow:
+      0 0 7px rgba(255, 220, 130, 0.95),
+      0 0 14px rgba(255, 150, 40, 0.95),
+      0 0 22px rgba(255, 80, 20, 0.75),
+      0 1px 2px rgba(0, 0, 0, 0.9);
+    transform: translateX(var(--touch-steer-nudge, 1px));
+  }
+  100% {
+    opacity: 0.5;
+    color: #ffb85a;
+    text-shadow:
+      0 0 5px rgba(255, 150, 40, 0.85),
+      0 0 10px rgba(255, 80, 20, 0.65),
+      0 1px 1px rgba(0, 0, 0, 0.8);
+    transform: translateX(var(--touch-steer-nudge, 1px));
+  }
+}
+
+.touch-steer-strip:active .touch-steer-strip__thumb {
+  box-shadow: 0 3px 16px rgba(233, 69, 96, 0.65);
+}
+
+.touch-steer-strip__label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: rgba(170, 182, 228, 0.6);
+}
+
 .floating-point {
   position: absolute;
   font-size: 22px;

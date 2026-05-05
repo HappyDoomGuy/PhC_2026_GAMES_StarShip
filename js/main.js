@@ -8,6 +8,9 @@ import { setShipType as setRendererShip } from './renderer.js';
 import { showMainMenu } from './ui.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) {
+    document.documentElement.classList.add('has-touch');
+  }
   init();
   bindButtons(startGame);
 

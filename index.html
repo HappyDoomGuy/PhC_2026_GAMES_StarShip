@@ -16,7 +16,7 @@
   </div>
   <div id="main-menu" style="display: none">
     <h1>СУПРАДИН</h1>
-    <p>Собери все витамины!<br>Тапай, куда двигать корабль.<br>Избегай мин <img src="assets/trash1.png" alt="мина" class="menu-trash-preview">. Лови бонусы: 🧲⌛🛡</p>
+    <p>Собери все витамины!<br>На ПК — ведите мышью по экрану. На телефоне касания по игре двигают корабль от точки зажима; нижняя полоска — отдельно для большого пальца без перекрытия игрового поля.<br>Избегай мин <img src="assets/trash1.png" alt="мина" class="menu-trash-preview">. Лови бонусы: 🧲⌛🛡</p>
     <div class="ship-selector">
       <p class="ship-selector-label">Выбери корабль:</p>
       <div class="ship-options">
@@ -47,6 +47,16 @@
         <div id="floating-points"></div>
       </div>
       <div id="collect-bar"></div>
+      <div id="touch-steer-strip" class="touch-steer-strip" aria-label="Управление кораблём влево и вправо">
+        <div class="touch-steer-strip__track">
+          <div class="touch-steer-strip__thumb-wrap">
+            <span class="touch-steer-strip__arrow touch-steer-strip__arrow--left" aria-hidden="true">&lt;&lt;</span>
+            <div class="touch-steer-strip__thumb" aria-hidden="true"></div>
+            <span class="touch-steer-strip__arrow touch-steer-strip__arrow--right" aria-hidden="true">&gt;&gt;</span>
+          </div>
+        </div>
+        <span class="touch-steer-strip__label">корабль ◀ — ▶</span>
+      </div>
       <div id="combo-display" class="combo-display" style="display: none"></div>
       <div id="milestone-messages"></div>
       <div id="level-complete">
