@@ -15,6 +15,28 @@ const SHIP_SUFFIXES = ['r', 'b'];
 const FRAME_KEYS = ['l1', 'l2', 'm', 'r1', 'r2'];
 const TRASH_SPRITES = [null, null, null, null];
 const TRASH_NAMES = ['trash1', 'trash2', 'trash3', 'trash4'];
+const PLAYER_ASSET_URLS = {
+  r: {
+    l1: new URL('../assets/player_r_l1.png', import.meta.url).href,
+    l2: new URL('../assets/player_r_l2.png', import.meta.url).href,
+    m: new URL('../assets/player_r_m.png', import.meta.url).href,
+    r1: new URL('../assets/player_r_r1.png', import.meta.url).href,
+    r2: new URL('../assets/player_r_r2.png', import.meta.url).href
+  },
+  b: {
+    l1: new URL('../assets/player_b_l1.png', import.meta.url).href,
+    l2: new URL('../assets/player_b_l2.png', import.meta.url).href,
+    m: new URL('../assets/player_b_m.png', import.meta.url).href,
+    r1: new URL('../assets/player_b_r1.png', import.meta.url).href,
+    r2: new URL('../assets/player_b_r2.png', import.meta.url).href
+  }
+};
+const TRASH_ASSET_URLS = [
+  new URL('../assets/trash1.png', import.meta.url).href,
+  new URL('../assets/trash2.png', import.meta.url).href,
+  new URL('../assets/trash3.png', import.meta.url).href,
+  new URL('../assets/trash4.png', import.meta.url).href
+];
 
 export function setShipType(type) {
   if (type === 'r' || type === 'b') selectedShipType = type;
@@ -29,16 +51,19 @@ export function initRenderer() {
   ctx = canvas.getContext('2d');
   SHIP_SUFFIXES.forEach(suffix => {
     FRAME_KEYS.forEach(key => {
-      const name = `player_${suffix}_${key}`;
       const img = new Image();
-      img.src = `assets/${name}.png`;
-      img.onload = () => { PLAYER_SPRITES[suffix][key] = img; };
+      const assignSprite = () => { PLAYER_SPRITES[suffix][key] = img; };
+      img.onload = assignSprite;
+      img.src = PLAYER_ASSET_URLS[suffix][key];
+      if (img.complete && img.naturalWidth) assignSprite();
     });
   });
-  TRASH_NAMES.forEach((name, i) => {
+  TRASH_NAMES.forEach((_, i) => {
     const img = new Image();
-    img.src = `assets/${name}.png`;
-    img.onload = () => { TRASH_SPRITES[i] = img; };
+    const assignSprite = () => { TRASH_SPRITES[i] = img; };
+    img.onload = assignSprite;
+    img.src = TRASH_ASSET_URLS[i];
+    if (img.complete && img.naturalWidth) assignSprite();
   });
   return { canvas, ctx };
 }
